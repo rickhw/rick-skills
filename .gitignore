@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+*.log
+.env
+
+# Local Claude Code state / vendored skill dependencies
+.claude/settings.local.json
+.agents/
