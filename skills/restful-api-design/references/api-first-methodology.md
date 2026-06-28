@@ -1,97 +1,84 @@
-# API-First Methodology
+# API-First 方法論
 
-## Philosophy
+## 理念
 
-Design APIs through **domain-driven thinking**, not mechanical CRUD. The guiding
-sentence: *APIs should reflect how users interact, not how developers
-implement.* Endpoints are derived from valid **state transitions**, not from
-database tables.
+以**領域驅動思維**設計 API，而非機械式 CRUD。指導句是：*API 應該反映使用者如何互動，
+而非開發者如何實作。* 端點是從合法的**狀態轉移**推導出來的，而不是從資料庫表格。
 
-Core principles:
-1. **Resource-centric** — design around real domain entities, not DB operations.
-2. **Domain knowledge first** — domain experts decide which transitions are
-   valid; engineers encode them.
-3. **Semantic clarity** — every operation should be immediately understandable.
-4. **Clear scope** — be explicit about what is and isn't possible.
-5. **Separation of concerns** — the API provides *building blocks*; applications
-   orchestrate business logic. Don't bake workflow orchestration into endpoints.
+核心原則：
+1. **以資源為中心** — 圍繞真實的領域實體設計，而非資料庫操作。
+2. **領域知識優先** — 由領域專家決定哪些轉移合法，工程師負責編碼。
+3. **語意清晰** — 每個操作都應一看即懂。
+4. **範圍明確** — 明白說出什麼可以、什麼不可以。
+5. **關注點分離** — API 提供*積木*，應用層負責編排業務邏輯。別把工作流編排塞進端點。
 
-## The five areas of API work
+## API 工作的五大領域
 
-1. **API Design** — data models, methods, workflows, validation.
-2. **API Architecture** — gateways, caching, performance, protocols, monitoring.
-3. **API Governance** — versioning, adoption, lifecycle management.
-4. **API Implementation Patterns** — async operations, pagination, idempotence,
-   batching.
-5. **API Engineering** — dev process, testing, collaboration, documentation.
+1. **API 設計** — 資料模型、方法、工作流、驗證。
+2. **API 架構** — 閘道、快取、效能、協定、監控。
+3. **API 治理** — 版本、採用策略、生命週期管理。
+4. **API 實作模式** — 非同步操作、分頁、冪等性、批次處理。
+5. **API 工程** — 開發流程、測試、協作、文件。
 
-## Standard vs Custom methods
+## 標準方法 vs 自訂方法
 
-- **Standard methods** = HTTP verbs for CRUD and structural changes:
-  `GET, POST, PUT, PATCH, DELETE`.
-- **Custom methods** = domain actions beyond CRUD, expressed as a `:verb`
-  suffix on the resource. Reach for these when a transition is a domain action,
-  not a field update.
+- **標準方法** = 用於 CRUD 與結構性變更的 HTTP 動詞：
+  `GET, POST, PUT, PATCH, DELETE`。
+- **自訂方法** = CRUD 之外的領域動作，以資源上的 `:動詞` 後綴表達。當某轉移是領域動作、
+  而非欄位更新時，就採用它。
 
-| Intent | Use |
+| 意圖 | 使用 |
 |---|---|
-| Create resource (initial transition) | `POST /resources` |
-| Read one / list | `GET /resources/{id}` / `GET /resources` |
-| Replace / partial update fields | `PUT` / `PATCH /resources/{id}` |
-| Terminal transition (delete) | `DELETE /resources/{id}` |
-| Domain transition (start/stop/cancel/approve…) | `POST /resources/{id}:verb` |
+| 建立資源（初始轉移） | `POST /resources` |
+| 讀取單一／列出 | `GET /resources/{id}` / `GET /resources` |
+| 取代／部分更新欄位 | `PUT` / `PATCH /resources/{id}` |
+| 終結轉移（刪除） | `DELETE /resources/{id}` |
+| 領域轉移（start/stop/cancel/approve…） | `POST /resources/{id}:動詞` |
 
-### EC2 instance example
+### EC2 執行個體範例
 
-Valid domain verbs: `launch, start, stop, reboot, terminate`.
+合法領域動詞：`launch, start, stop, reboot, terminate`。
 
 ```
-POST   /instances              # launch (create)
-POST   /instances/{id}:start   # start a stopped instance
-POST   /instances/{id}:stop    # stop a running instance
-POST   /instances/{id}:reboot  # reboot a running instance
-DELETE /instances/{id}         # terminate
+POST   /instances              # launch（建立）
+POST   /instances/{id}:start   # 啟動一個已停止的執行個體
+POST   /instances/{id}:stop    # 停止一個執行中的執行個體
+POST   /instances/{id}:reboot  # 重啟一個執行中的執行個體
+DELETE /instances/{id}         # terminate（終止）
 ```
 
-Each maps to exactly one allowed state transition. There is deliberately no
-`:start` on an already-running or terminated instance — the transition table
-forbids it, so the API does too.
+每個都恰好對應一個允許的狀態轉移。對一個已在執行中或已終止的執行個體，刻意沒有提供
+`:start`——轉移表禁止它，所以 API 也禁止。
 
-## Conventions
+## 慣例
 
-- **Naming**: plural nouns for collections (`/orders`), resource id in the path
-  (`/orders/{id}`), domain verbs (not nouns) for custom methods.
-- **Versioning**: treat versioning as a governance decision; version the
-  contract, and plan adoption + lifecycle (deprecation) explicitly.
-- **Pagination / async / idempotence / batching**: treat these as named
-  implementation patterns, decided per endpoint — not ad hoc.
-- **Errors**: return open-ended failure detail as *status* data (reason,
-  message), distinct from the resource's finite *state*.
+- **命名**：集合用複數名詞（`/orders`），路徑中放資源 id（`/orders/{id}`），自訂方法
+  用領域動詞（而非名詞）。
+- **版本**：把版本視為治理決策；對契約做版本管理，並明確規劃採用與生命週期（淘汰）。
+- **分頁／非同步／冪等性／批次**：視為具名的實作模式，逐端點決定——而非臨時拼湊。
+- **錯誤**：把開放式的失敗細節（原因、訊息）以*狀況*資料回傳，與資源的有限*狀態*區分開來。
 
-## OpenAPI as the contract
+## OpenAPI 作為契約
 
-- The spec is the **product requirement document** and the **contract** — the
-  most concrete, complete artifact available. Write it **first**.
-- Avoid the anti-pattern of coding first and reverse-engineering the spec later.
-- Combine: **FSM model** (states/transitions) + **class diagram** (structure) +
-  **transition table** (exhaustive operation list) + **role-based authorization**
-  (who does what).
-- Known OpenAPI v3.0 limitations: weak modularity for large systems; `$ref` path
-  constraints complicate modular decomposition — plan file structure accordingly.
+- 規格就是**產品需求文件**與**契約**——可得的最具體、最完整的產物。**先**寫它。
+- 避免「先寫程式、事後逆向產生規格」這個反模式。
+- 結合：**FSM 模型**（狀態／轉移）+ **類別圖**（結構）+ **轉移表**（窮舉操作清單）+
+  **角色式授權**（誰做什麼）。
+- 已知 OpenAPI v3.0 限制：對大型系統的模組化能力薄弱；`$ref` 路徑限制會使模組化拆解
+  變得複雜——請據此規劃檔案結構。
 
-## Common API-First pitfalls to avoid
+## 要避免的 API-First 常見陷阱
 
-- Underestimating the OpenAPI spec; treating it as optional rather than the
-  foundational contract.
-- Weak OOAD (object-oriented analysis/design) skills leading to anemic models.
-- Embedding business logic in APIs, creating tight coupling.
-- Writing code first and back-filling the spec.
-- Needing separate use-case docs because the API isn't self-describing.
-- Letting unresolved communication problems hide behind missing specs.
+- 低估 OpenAPI 規格；把它當成可有可無，而非基礎契約。
+- OOAD（物件導向分析／設計）能力薄弱，導致貧血模型。
+- 把業務邏輯嵌進 API，造成緊耦合。
+- 先寫程式，再回填規格。
+- 因 API 無法自我描述，而需要另寫使用案例文件。
+- 讓未解決的溝通問題藏在缺失的規格背後。
 
-## Recommended reading
+## 推薦閱讀
 
-- *API Design Patterns* (and Google's public API style guide)
-- *Continuous API Management*
-- *Mastering API Architecture*
-- Martin Fowler — "Anemic Domain Model"
+- 《API Design Patterns》（以及 Google 的公開 API 風格指南）
+- 《Continuous API Management》
+- 《Mastering API Architecture》
+- Martin Fowler — 〈Anemic Domain Model〉

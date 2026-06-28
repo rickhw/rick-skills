@@ -1,16 +1,15 @@
-# State Transition Table — Templates & Worked Example
+# 狀態轉移表 — 範本與完整範例
 
-The state transition table is the heart of the FSM-first method. Build it before
-writing any endpoint. Each cell answers: *"Can the resource move from row-state
-to column-state, and if so, what domain verb triggers it (and who may do it)?"*
+狀態轉移表是 FSM 優先方法的核心。在撰寫任何端點之前先建好它。每一格回答：
+*「資源能否從『列狀態』移動到『欄狀態』？若可以，是哪個領域動詞觸發（且誰可以做）？」*
 
-## Template 1 — Resource & states
+## 範本 1 — 資源與狀態
 
 ```
-Resource (controlled object): <one noun, e.g. Instance>
-Scope (one line):             <what this API does / does not do>
+受控對象（controlled object）：<一個名詞，例如 Instance>
+範圍（一行）：                  <這個 API 做什麼／不做什麼>
 
-States (≤10, ideally ~5):
+狀態（≤10，理想約 5 個）：
   - <state-1>   (INITIAL)
   - <state-2>
   - <state-3>
@@ -18,10 +17,10 @@ States (≤10, ideally ~5):
   - <state-5>   (END)
 ```
 
-## Template 2 — Transition table
+## 範本 2 — 轉移表
 
-Rows = current (from) state. Columns = target (to) state.
-Cell = `verb` (allowed) or ❌ (forbidden). Add a Roles column/note as needed.
+列＝目前（從）狀態。欄＝目標（到）狀態。
+格＝`動詞`（允許）或 ❌（禁止）。視需要加上「角色」欄或註記。
 
 ```
             | to: A        | to: B        | to: C        | to: D
@@ -32,19 +31,19 @@ from: C     | ❌           | verbCB       | —            | verbCD
 from: D     | ❌           | ❌           | ❌           | —  (END)
 ```
 
-Roles (per transition):
+角色（逐轉移）：
 ```
-verbAB : <role(s) allowed>
-verbBC : <role(s) allowed>
+verbAB : <允許的角色>
+verbBC : <允許的角色>
 ...
 ```
 
-## Template 3 — Endpoint mapping
+## 範本 3 — 端點對應
 
-For every allowed verb, write one row:
+為每個允許的動詞寫一列：
 
 ```
-Transition (from→to) | Verb     | HTTP method + path            | Roles
+轉移（從→到）         | 動詞     | HTTP 方法 + 路徑               | 角色
 ---------------------+----------+-------------------------------+--------------
 (none)→A             | create   | POST   /resources             | ...
 A→B                  | verbAB   | POST   /resources/{id}:verbAB | ...
@@ -53,15 +52,14 @@ B→D                  | verbBD   | DELETE /resources/{id}        | ...
 
 ---
 
-## Worked example — EC2 Instance
+## 完整範例 — EC2 執行個體（Instance）
 
-**Controlled object:** Instance
-**Scope:** manage the compute lifecycle of a single VM; does *not* manage
-billing or networking.
+**受控對象：** Instance
+**範圍：** 管理單一 VM 的運算生命週期；*不*管理計費或網路。
 
-**States:** `pending` (INITIAL), `running`, `stopped`, `terminated` (END)
+**狀態：** `pending`（INITIAL）、`running`、`stopped`、`terminated`（END）
 
-**Transition table** (verb = allowed, ❌ = forbidden):
+**轉移表**（動詞＝允許，❌＝禁止）：
 
 ```
               | running   | stopped   | terminated
@@ -71,15 +69,15 @@ running       | reboot*   | stop      | terminate
 stopped       | start     | ❌        | terminate
 terminated    | ❌        | ❌        | —  (END)
 ```
-`*reboot` is running→running (self-transition).
+`*reboot` 為 running→running（自轉移）。
 
-**Derived endpoints:**
+**推導出的端點：**
 
 ```
-Transition          | Verb       | HTTP
+轉移                | 動詞       | HTTP
 --------------------+------------+----------------------------
 (none)→pending      | launch     | POST   /instances
-pending→running     | (auto)     | (no endpoint — automatic)
+pending→running     | (auto)     | （無端點——自動）
 running→stopped     | stop       | POST   /instances/{id}:stop
 stopped→running     | start      | POST   /instances/{id}:start
 running→running     | reboot     | POST   /instances/{id}:reboot
@@ -87,11 +85,10 @@ running→running     | reboot     | POST   /instances/{id}:reboot
 read / list         | —          | GET /instances , GET /instances/{id}
 ```
 
-Note what's *absent*: there's no way to `start` a `running` instance or
-`stop` a `terminated` one. The table forbids those transitions, so the API
-never exposes them. That is the whole point.
+注意*缺少*了什麼：沒有辦法去 `start` 一個 `running` 的執行個體，也沒辦法 `stop` 一個
+`terminated` 的執行個體。轉移表禁止這些轉移，所以 API 從不開放它們。這正是重點所在。
 
-## Optional — Mermaid state diagram
+## 選用 — Mermaid 狀態圖
 
 ```mermaid
 stateDiagram-v2

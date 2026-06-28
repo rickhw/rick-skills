@@ -1,114 +1,103 @@
 ---
 name: restful-api-design
-description: Design RESTful APIs using a Finite-State-Machine-first, domain-driven methodology. Use when designing or reviewing HTTP/REST APIs, defining resources and endpoints, modeling resource lifecycles and state transitions, choosing between standard and custom methods, writing OpenAPI specs, or deciding which operations an API should expose. Triggers on requests like "design an API for X", "what endpoints should this resource have", "model the lifecycle of this resource", or "review this API design".
+description: 以「有限狀態機（FSM）優先、領域驅動」的方法論設計 RESTful API。當需要設計或審查 HTTP/REST API、定義資源與端點、建模資源生命週期與狀態轉移、選擇標準方法或自訂方法、撰寫 OpenAPI 規格，或決定 API 應該開放哪些操作時使用。觸發語句例如：「幫我設計一個 X 的 API」、「這個資源應該有哪些端點」、「把這個資源的生命週期建模成 API」、「審查這份 API 設計」。
 ---
 
-# RESTful API Design (FSM-First)
+# RESTful API 設計（FSM 優先）
 
-## Overview
+## 概述
 
-This skill designs RESTful APIs by modeling each resource as a **Finite State
-Machine (FSM)** rather than as a set of database CRUD operations. The core
-belief: **an API should reflect how users interact with a resource, not how
-developers store it.** Endpoints are *derived* from valid state transitions, so
-the API exposes exactly the operations the domain allows — no more, no fewer.
+本技能以「把每個資源建模成**有限狀態機（Finite State Machine, FSM）**」的方式設計
+RESTful API，而非從資料庫 CRUD 操作出發。核心信念是：**API 應該反映使用者如何與資源
+互動，而不是開發者如何儲存它。** 端點是從合法的狀態轉移**推導**出來的，因此 API 恰好
+開放領域所允許的操作——不多，也不少。
 
-This is a methodology, not a CRUD generator. Domain knowledge drives the design.
+這是一套方法論，而不是 CRUD 產生器。領域知識主導整個設計。
 
-## When to use this skill
+## 何時使用本技能
 
-- Designing a new API or a new resource within an existing API
-- Deciding what endpoints/operations a resource should expose
-- Modeling a resource's lifecycle (e.g. order, instance, bug, subscription)
-- Choosing between standard HTTP methods and custom methods
-- Reviewing an existing API for missing/invalid/illogical operations
-- Writing or reviewing an OpenAPI specification
+- 設計新 API，或在既有 API 中新增資源
+- 決定一個資源應該開放哪些端點／操作
+- 建模資源的生命週期（例如訂單、執行個體、缺陷、訂閱）
+- 在標準 HTTP 方法與自訂方法之間做選擇
+- 審查既有 API，找出遺漏／非法／不合理的操作
+- 撰寫或審查 OpenAPI 規格
 
-## The method (follow in order)
+## 設計方法（依序進行）
 
-### Step 1 — Identify the controlled object (the resource)
+### 步驟 1 — 確定受控對象（資源）
 
-State the single noun this API controls (Order, Instance, Bug, Subscription).
-If you cannot name one clear noun, the scope is wrong — split it first. One FSM
-controls exactly one resource type. See `references/fsm-design-principles.md`.
+明確說出這個 API 所控制的單一名詞（Order、Instance、Bug、Subscription）。
+若無法指出一個清楚的名詞，代表範圍劃分有誤，請先拆分。一個 FSM 只控制一種資源型別。
+詳見 `references/fsm-design-principles.md`。
 
-### Step 2 — Enumerate the states
+### 步驟 2 — 列舉狀態
 
-List the resource's states as **nouns or adjectives**, each a single lexical
-unit (e.g. `pending`, `running`, `stopped`, `terminated`).
+以**名詞或形容詞**列出資源的各個狀態，每個狀態為單一語彙單位（例如 `pending`、
+`running`、`stopped`、`terminated`）。
 
-Rules:
-- Keep states **≤ 10, ideally ~5**.
-- **Exactly one initial state.** Multiple end states are allowed.
-- Distinguish **state** (finite, enumerable, countable — belongs in the FSM)
-  from **status** (open-ended conditions like error reasons — does *not* drive
-  the FSM). See the State vs Status note in the principles reference.
-- If you exceed ~10 states, decompose with a **Nested / Hierarchical FSM**
-  (divide and conquer) instead of one giant machine.
+規則：
+- 狀態數量保持 **≤ 10，理想約 5 個**。
+- **恰好一個初始狀態**，可以有多個結束狀態。
+- 區分**狀態（state）**（有限、可列舉、可計數——屬於 FSM）與**狀況（status）**
+  （像錯誤原因這類開放式情形——**不**驅動 FSM）。詳見原則文件中的「狀態 vs 狀況」說明。
+- 若超過約 10 個狀態，請以**巢狀／階層式狀態機**（分而治之）拆解，而非建一台巨大的機器。
 
-### Step 3 — Build the state transition table
+### 步驟 3 — 建立狀態轉移表
 
-Create a from → to matrix. For every cell mark:
-- ✅ allowed, with the **domain verb** that triggers it (e.g. `start`, `stop`)
-- ❌ prohibited
+建立一張 從 → 到 的矩陣。對每一格標註：
+- ✅ 允許，並寫上觸發它的**領域動詞**（例如 `start`、`stop`）
+- ❌ 禁止
 
-This table is the heart of the design. Invalid transitions are eliminated here,
-which is what stops the API from sprouting meaningless endpoints. Use the
-template in `references/state-transition-table-template.md`.
+這張表是設計的核心。非法轉移在此被排除，這正是避免 API 長出無意義端點的關鍵。
+請使用 `references/state-transition-table-template.md` 中的範本。
 
-### Step 4 — Derive endpoints from transitions
+### 步驟 4 — 從轉移推導端點
 
-Map each resource and each allowed transition to HTTP:
+把每個資源與每個允許的轉移對應到 HTTP：
 
-- **Standard methods** for lifecycle and structural operations:
-  - `POST   /orders`            — create (the initial transition)
-  - `GET    /orders` / `GET /orders/{id}` — read / list
-  - `PUT|PATCH /orders/{id}`    — update fields
-  - `DELETE /orders/{id}`       — terminal transition
-- **Custom methods** for domain transitions that aren't plain CRUD, using a
-  `:verb` suffix on the resource:
+- 生命週期與結構性操作使用**標準方法**：
+  - `POST   /orders`            — 建立（初始轉移）
+  - `GET    /orders` / `GET /orders/{id}` — 讀取／列出
+  - `PUT|PATCH /orders/{id}`    — 更新欄位
+  - `DELETE /orders/{id}`       — 終結轉移
+- 非單純 CRUD 的領域轉移使用**自訂方法**，在資源上加 `:動詞` 後綴：
   - `POST /instances/{id}:start`
   - `POST /instances/{id}:stop`
   - `POST /orders/{id}:cancel`
 
-Only create an endpoint if a ✅ transition justifies it. If the table forbids a
-transition, the API must not offer it.
+只有在有 ✅ 轉移作為依據時才建立端點。若表中禁止某轉移，API 就不得提供它。
 
-See `references/api-first-methodology.md` for standard-vs-custom guidance and
-naming conventions.
+標準與自訂方法的取捨、命名慣例詳見 `references/api-first-methodology.md`。
 
-### Step 5 — Attach events and roles (authorization)
+### 步驟 5 — 加上事件與角色（授權）
 
-- Transitions may fire **events** before/after execution (hooks, notifications).
-- Define **roles** (who may trigger each transition). The same transition is
-  often allowed for one role and forbidden for another — encode this alongside
-  the transition table, not as an afterthought.
+- 轉移可在執行前／後觸發**事件**（鉤子、通知）。
+- 定義**角色**（誰可以觸發每個轉移）。同一個轉移常常對某個角色允許、對另一個角色禁止
+  ——請與轉移表一併編碼，而非事後補上。
 
-### Step 6 — Capture it as a contract (OpenAPI)
+### 步驟 6 — 落實為契約（OpenAPI）
 
-Treat the spec as the **product requirement document and the contract**, written
-*before* implementation — not reverse-engineered from code afterward. Keep
-business-logic orchestration out of the API surface: the API provides building
-blocks; applications compose them. See the methodology reference for the
-API-First pitfalls to avoid.
+把規格視為**產品需求文件與契約**，在實作**之前**撰寫——而不是事後從程式碼逆向產生。
+讓業務邏輯的編排留在 API 表面之外：API 提供積木，應用層負責組合。要避免的 API-First
+陷阱詳見方法論文件。
 
-## Output you should produce
+## 你應該產出的內容
 
-When applying this skill, deliver (at minimum):
-1. The controlled object (one noun) and a one-line scope statement.
-2. The state list (with the single initial state and end states marked).
-3. The state transition table (from → to, verbs, ✅/❌).
-4. The derived endpoint list (method + path + the transition it serves).
-5. Roles per transition, if more than one actor exists.
+套用本技能時，至少要交付：
+1. 受控對象（一個名詞）與一行範圍說明。
+2. 狀態清單（標出唯一的初始狀態與各結束狀態）。
+3. 狀態轉移表（從 → 到、動詞、✅／❌）。
+4. 推導出的端點清單（方法 + 路徑 + 它所服務的轉移）。
+5. 若有多個操作者，列出每個轉移的角色。
 
-Prefer an FSM/state diagram (Mermaid `stateDiagram-v2`) plus the table — they
-make invalid transitions obvious.
+建議同時提供 FSM／狀態圖（Mermaid `stateDiagram-v2`）與表格——它們能讓非法轉移一目了然。
 
-## References
+## 參考文件
 
-- `references/fsm-design-principles.md` — the 5 FSM design principles, state vs
-  status, nested/hierarchical FSMs, Mealy/Moore, complexity limits.
-- `references/api-first-methodology.md` — API-First philosophy, standard vs
-  custom methods, naming/versioning/pagination conventions, common pitfalls.
-- `references/state-transition-table-template.md` — fill-in templates for the
-  state table and a worked EC2-instance example.
+- `references/fsm-design-principles.md` — 5 大 FSM 設計原則、狀態 vs 狀況、
+  巢狀／階層式 FSM、Mealy／Moore、複雜度上限。
+- `references/api-first-methodology.md` — API-First 理念、標準 vs 自訂方法、
+  命名／版本／分頁慣例、常見陷阱。
+- `references/state-transition-table-template.md` — 狀態表填寫範本，以及
+  EC2 執行個體的完整範例。

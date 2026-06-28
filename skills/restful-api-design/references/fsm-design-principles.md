@@ -1,82 +1,71 @@
-# FSM Design Principles
+# FSM 設計原則
 
-Why FSM: the *finite* nature of states establishes clear boundaries, which is
-what makes a system reliable and consistent. Without a finite constraint,
-systems drift and consistency becomes hard to guarantee. FSM is a planning tool
-for system design and business flow, not just an implementation detail.
+為什麼用 FSM：狀態的**有限**特性建立了清楚的邊界，而這正是讓系統可靠、一致的關鍵。
+缺少有限性的約束，系統就會漂移，一致性也難以保證。FSM 是系統設計與業務流程的規劃工具，
+而不只是實作細節。
 
-## The 5 design principles
+## 5 大設計原則
 
-### 1. Define the controlled object
-Before anything else, name the single thing you are controlling — almost always
-a noun: an API resource, a work item, a business entity (Order, BOM, Defect,
-Feature). Skipping this step is the most common cause of chaotic designs.
+### 1. 確定受控對象
+在做任何事之前，先指出你所控制的單一事物——幾乎總是一個名詞：API 資源、工作項目、
+業務實體（Order、BOM、Defect、Feature）。跳過這一步是設計混亂最常見的原因。
 
-### 2. Limited states
-- State names are **nouns or adjectives**, each a **single lexical unit**.
-- Keep states **under 10, ideally around 5**.
-- When you exceed that, apply **divide and conquer**: use a **Nested FSM (NFSM)**
-  or **Hierarchical State Machine (HSM)** rather than one sprawling machine.
-- Rationale: the simplified TCP state machine has ~11 states and is already hard
-  to hold in your head — beyond ~10 states cognitive load grows sharply.
+### 2. 有限狀態
+- 狀態名稱用**名詞或形容詞**，每個皆為**單一語彙單位**。
+- 狀態數量保持 **少於 10，理想約 5 個**。
+- 超過時請套用**分而治之**：使用**巢狀狀態機（NFSM）**或**階層式狀態機（HSM）**，
+  而非一台龐雜的機器。
+- 理由：簡化版的 TCP 狀態機約有 11 個狀態，就已經很難記在腦中——超過約 10 個狀態後，
+  認知負擔會急遽上升。
 
-### 3. Clear start and end points
-- Exactly **one initial state**.
-- **Multiple end states** are allowed.
-- Design by fixing the head (initial) and tail (terminal) states first, then
-  fill in the middle.
+### 3. 清楚的起點與終點
+- 恰好**一個初始狀態**。
+- 允許**多個結束狀態**。
+- 設計時先固定頭（初始）與尾（終結）狀態，再填中間。
 
-### 4. State transitions
-- Transitions are **verb phrases** and are recorded in a **state transition
-  table** connecting every from → to pair.
-- The connections are programmable / enumerable.
-- RESTful APIs align naturally with this: each allowed transition becomes an
-  operation.
+### 4. 狀態轉移
+- 轉移是**動詞片語**，並記錄在連接所有 從 → 到 配對的**狀態轉移表**中。
+- 這些連接是可程式化／可列舉的。
+- RESTful API 天然契合：每個允許的轉移成為一個操作。
 
-### 5. Events and roles
-- A transition can trigger **events** before and/or after it executes.
-- **Roles** (developer, manager, QA, reporter, ...) have *different* permitted
-  transitions. The same transition may be allowed for one role and forbidden for
-  another. Handle each role's events explicitly.
+### 5. 事件與角色
+- 一個轉移可在執行前／後觸發**事件**。
+- **角色**（開發者、主管、QA、回報者……）各有*不同*的允許轉移。同一個轉移可能對某角色
+  允許、對另一角色禁止。每個角色的事件要明確處理。
 
-## State vs Status — a critical distinction
+## 狀態 vs 狀況 — 關鍵區別
 
-- **State**: limited, enumerable, countable. Like a traffic light's three
-  colors. This is what belongs in the FSM and what drives API operations.
-- **Status**: open-ended, uncertain, not cleanly countable. Like HTTP status
-  codes or arbitrary failure reasons. This does **not** drive the FSM.
+- **狀態（state）**：有限、可列舉、可計數。像紅綠燈的三種顏色。這是屬於 FSM、並驅動
+  API 操作的東西。
+- **狀況（status）**：開放式、不確定、不易乾淨計數。像 HTTP 狀態碼或任意的失敗原因。
+  這**不**驅動 FSM。
 
-If a "state" can take unbounded values, it's really a status field — model it as
-data, not as an FSM node.
+若某個「狀態」可以取無界的值，它其實是個狀況欄位——把它建模為資料，而不是 FSM 節點。
 
-## When NOT to force an FSM
+## 何時*不該*強行套用 FSM
 
-Some things look stateful but aren't finite. Example: a CI/CD pipeline. A single
-stage (build → test → deploy) has a clean FSM, but orchestrating, say, 10
-projects yields 100+ pipeline variations — an "infinite divergence machine,"
-not a finite-state one. If states multiply combinatorially, FSM is the wrong
-lens (or you need hierarchical decomposition).
+有些東西看似有狀態，但其實並非有限。例如 CI/CD 流水線：單一階段（build → test →
+deploy）有乾淨的 FSM，但要編排例如 10 個專案時會產生 100+ 種流水線變化——這是一台
+「無限發散機」，而非有限狀態機。若狀態以組合方式暴增，FSM 就是錯的視角（或你需要做
+階層式拆解）。
 
-## Worked example: Bug workflow
+## 完整範例：缺陷（Bug）工作流
 
-- **Resource**: Bug
-- **End states**: New, Closed, Canceled, Limitation
-- **Roles**: Developer, Team Leader, Reporter (QA/Tester)
-- **Constraint**: each role has a restricted set of allowed transitions.
+- **資源**：Bug
+- **結束狀態**：New、Closed、Canceled、Limitation
+- **角色**：Developer、Team Leader、Reporter（QA／測試人員）
+- **限制**：每個角色都有一組受限的允許轉移。
 
-## Theory (background)
+## 理論（背景）
 
-- **Mealy machine (1955)**: output depends on current state *and* input; uses
-  states more efficiently.
-- **Moore machine (1956)**: output depends only on current state; more stable
-  and resistant to signal glitches.
-- **Replicated State Machine (Raft, 2014)**: multiple servers reach consensus by
-  executing identical commands from identical initial state.
-- **Statecharts** (Harel) are the basis of UI libraries like XState — the
-  practical realization of hierarchical FSMs.
+- **Mealy machine（1955）**：輸出取決於目前狀態*與*輸入；狀態使用較有效率。
+- **Moore machine（1956）**：輸出僅取決於目前狀態；較穩定、較能抵抗訊號毛刺。
+- **Replicated State Machine（Raft, 2014）**：多台伺服器從相同初始狀態執行相同命令
+  以達成共識。
+- **Statecharts**（Harel）是 XState 等 UI 函式庫的基礎——階層式 FSM 的實務實現。
 
-## Foundational mindset
+## 根本心法
 
-Two principles underpin all five rules:
-- **Divide and conquer** (decompose large machines).
-- **High cohesion, low coupling** (each FSM owns one resource cleanly).
+兩個原則支撐著全部 5 條規則：
+- **分而治之**（拆解龐大的機器）。
+- **高內聚、低耦合**（每個 FSM 乾淨地擁有一個資源）。
