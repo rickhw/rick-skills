@@ -9,6 +9,7 @@ in its own folder under `skills/` and can be installed independently.
 | Skill | What it does |
 |---|---|
 | [`restful-api-design`](skills/restful-api-design/) | Design RESTful APIs with a Finite-State-Machine-first, domain-driven method. Model each resource as an FSM, build a state transition table, and *derive* endpoints from valid transitions. (Traditional Chinese / 正體中文) |
+| [`r3-model`](skills/r3-model/) | Describe & design system architecture with the R3 Model — three views (High Level / Logical / Physical) centered on Role & Responsibility. A C4-like, R&R-driven methodology. (Traditional Chinese / 正體中文) |
 | _more coming…_ | |
 
 ## Repo layout
@@ -19,13 +20,17 @@ in its own folder under `skills/` and can be installed independently.
 ├── LICENSE
 ├── skills-lock.json
 └── skills/
-    └── restful-api-design/
+    ├── restful-api-design/
+    │   ├── SKILL.md                                   # the skill (entry point)
+    │   └── references/
+    │       ├── fsm-design-principles.md               # the 5 FSM principles, state vs status
+    │       ├── api-first-methodology.md               # standard vs custom methods, conventions, pitfalls
+    │       ├── state-transition-table-template.md      # fill-in templates + worked EC2 example
+    │       └── identifier-design.md                    # ID design: scope, countability, UUID/ULID/Snowflake/KGS
+    └── r3-model/
         ├── SKILL.md                                   # the skill (entry point)
         └── references/
-            ├── fsm-design-principles.md               # the 5 FSM principles, state vs status
-            ├── api-first-methodology.md               # standard vs custom methods, conventions, pitfalls
-            ├── state-transition-table-template.md      # fill-in templates + worked EC2 example
-            └── identifier-design.md                    # ID design: scope, countability, UUID/ULID/Snowflake/KGS
+            └── three-views.md                          # per-view templates + R&R checklist + worked example
 ```
 
 Each `SKILL.md` is an entry point. Its YAML frontmatter (`name` + `description`)
@@ -133,6 +138,41 @@ The skill then walks the method and produces:
   FSMs rather than one giant machine.
 - **Identifiers are a deliberate choice** — pick by scope, countability, and
   whether the ID is user-facing; don't default to auto-increment or UUID.
+
+---
+
+## Skill: `r3-model`
+
+Describes and designs system architecture with the **R3 Model** — three views of
+the same system at different abstraction levels, all driven by **Role &
+Responsibility (R&R)**. Distilled from:
+
+- [R3 Model](https://rickhw.github.io/2025/06/29/Design/R3-Model/)
+
+Conceptually close to the C4 Model (R3 predates the author's discovery of C4),
+but with R&R as the through-line, grounded in OOP encapsulation and Conway's Law.
+
+### The three views
+
+1. **High Level View** — for non-technical stakeholders: users, internal/external
+   dependencies, and access control (ACL) expressed as public/protected/private.
+2. **Logical View** — service roles (Web, API, DB, Cache, Queue…) with their
+   responsibilities, data flow tied to User Stories, and throughput/frequency on
+   hot paths. The goal is shared understanding, not implementation.
+3. **Physical View** — deployable form: pods/containers, N replicas, technology
+   choices, and observability (metrics/logging/tracing) context.
+
+No fourth code-level view — use sequence diagrams and state machines for detailed
+behavior instead.
+
+### How to use it
+
+Trigger prompts (Chinese or English):
+
+- 「幫我畫這個系統的架構圖。」
+- "Write an architecture doc for this service."
+- 「這個系統有哪些角色與職責？」
+- 「規劃這個系統的部署架構與副本數。」
 
 ---
 
