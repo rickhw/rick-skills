@@ -25,7 +25,8 @@ the API exposes exactly the operations the domain allows, and nothing else.
         └── references/
             ├── fsm-design-principles.md               # the 5 FSM principles, state vs status
             ├── api-first-methodology.md               # standard vs custom methods, conventions, pitfalls
-            └── state-transition-table-template.md      # fill-in templates + worked EC2 example
+            ├── state-transition-table-template.md      # fill-in templates + worked EC2 example
+            └── identifier-design.md                    # ID design: scope, countability, UUID/ULID/Snowflake/KGS
 ```
 
 `SKILL.md` is the entry point. Its YAML frontmatter (`name` + `description`)

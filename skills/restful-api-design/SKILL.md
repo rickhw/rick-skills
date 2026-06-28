@@ -70,6 +70,10 @@ RESTful API，而非從資料庫 CRUD 操作出發。核心信念是：**API 應
 
 標準與自訂方法的取捨、命名慣例詳見 `references/api-first-methodology.md`。
 
+定義路徑中的 `{id}` 時，要**刻意選擇識別碼方案**，而非預設用自動遞增或 UUID：先問這個
+ID 要在多大範圍內唯一、面向使用者或僅供內部、是否需可排序。對外端點偏好不可預測的 ID
+（避免洩漏規模、被遍歷）。詳見 `references/identifier-design.md`。
+
 ### 步驟 5 — 加上事件與角色（授權）
 
 - 轉移可在執行前／後觸發**事件**（鉤子、通知）。
@@ -101,3 +105,5 @@ RESTful API，而非從資料庫 CRUD 操作出發。核心信念是：**API 應
   命名／版本／分頁慣例、常見陷阱。
 - `references/state-transition-table-template.md` — 狀態表填寫範本，以及
   EC2 執行個體的完整範例。
+- `references/identifier-design.md` — 識別碼（ID）設計：範圍、可數性與可理解性、
+  各種產生方式（自動遞增／UUID／ULID／Snowflake／KGS）的取捨、對外 vs. 對內 ID。
