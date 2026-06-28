@@ -10,6 +10,7 @@ in its own folder under `skills/` and can be installed independently.
 |---|---|
 | [`restful-api-design`](skills/restful-api-design/) | Design RESTful APIs with a Finite-State-Machine-first, domain-driven method. Model each resource as an FSM, build a state transition table, and *derive* endpoints from valid transitions. (Traditional Chinese / 正體中文) |
 | [`r3-model`](skills/r3-model/) | Describe & design system architecture with the R3 Model — three views (High Level / Logical / Physical) centered on Role & Responsibility. A C4-like, R&R-driven methodology. (Traditional Chinese / 正體中文) |
+| [`software-versioning`](skills/software-versioning/) | Plan version & artifact management across the SDLC — SemVer numbering, dev-vs-release artifacts, artifact≠config, Version-First vs Version-Late, traceable delivery. (Traditional Chinese / 正體中文) |
 | _more coming…_ | |
 
 ## Repo layout
@@ -27,10 +28,16 @@ in its own folder under `skills/` and can be installed independently.
     │       ├── api-first-methodology.md               # standard vs custom methods, conventions, pitfalls
     │       ├── state-transition-table-template.md      # fill-in templates + worked EC2 example
     │       └── identifier-design.md                    # ID design: scope, countability, UUID/ULID/Snowflake/KGS
-    └── r3-model/
+    ├── r3-model/
+    │   ├── SKILL.md                                   # the skill (entry point)
+    │   └── references/
+    │       └── three-views.md                          # per-view templates + R&R checklist + worked example
+    └── software-versioning/
         ├── SKILL.md                                   # the skill (entry point)
         └── references/
-            └── three-views.md                          # per-view templates + R&R checklist + worked example
+            ├── semver-and-numbering.md                 # X.Y.Z(.Q), build metadata, naming conventions
+            ├── artifact-management.md                  # dev vs rel, artifact≠config, deliver-on-day-1
+            └── versioning-in-sdlc.md                   # Version-First vs Version-Late, version flow through SDLC
 ```
 
 Each `SKILL.md` is an entry point. Its YAML frontmatter (`name` + `description`)
@@ -173,6 +180,42 @@ Trigger prompts (Chinese or English):
 - "Write an architecture doc for this service."
 - 「這個系統有哪些角色與職責？」
 - 「規劃這個系統的部署架構與副本數。」
+
+---
+
+## Skill: `software-versioning`
+
+Plans **version management and artifact management** across the SDLC. Core idea:
+**version numbers are a communication interface** — between PM, dev, QA, and ops.
+Distilled from three articles:
+
+- [Version Control](https://rickhw.github.io/2015/02/11/SoftwareEngineering/Version-Control/)
+- [Artifact Management and Version Control](https://rickhw.github.io/2022/04/06/SoftwareEngineering/Artifact-Management-and-Version-Control/)
+- [Versioning in SDLC](https://rickhw.github.io/2024/09/14/SoftwareEngineering/Versioning-in-SDLC/)
+
+### What it covers
+
+- **SemVer `X.Y.Z` (+ optional `Q`)** numbering and build metadata (build id,
+  revision, tag, customer id); a version is a *feature set*, not a schedule, and
+  only increments *after* the release procedure.
+- **dev vs release artifacts** — internal/unvalidated vs certified/customer-ready
+  (exactly one per release cycle).
+- **artifact ≠ config** (1-to-many): one artifact, per-environment config —
+  Single Codebase, Multiple Deployment.
+- **Version-First (products) vs Version-Late (projects)** — and the failure modes
+  of leaving a project un-versioned.
+- **Branch strategy vs artifact management vs version control** solve *different*
+  problems — don't conflate them.
+- **Deliver "Hello World" on day one** — CI-built artifacts from project start.
+
+### How to use it
+
+Trigger prompts (Chinese or English):
+
+- 「這個專案的版本號要怎麼訂？SemVer 還是時間戳？」
+- "Design an artifact naming and release flow for this service."
+- 「dev build 跟 release build 要怎麼區分？」
+- "How should a version flow through dev/test/staging/prod with traceability?"
 
 ---
 
