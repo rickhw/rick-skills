@@ -11,6 +11,7 @@ in its own folder under `skills/` and can be installed independently.
 | [`restful-api-design`](skills/restful-api-design/) | Design RESTful APIs with a Finite-State-Machine-first, domain-driven method. Model each resource as an FSM, build a state transition table, and *derive* endpoints from valid transitions. (Traditional Chinese / 正體中文) |
 | [`r3-model`](skills/r3-model/) | Describe & design system architecture with the R3 Model — three views (High Level / Logical / Physical) centered on Role & Responsibility. A C4-like, R&R-driven methodology. (Traditional Chinese / 正體中文) |
 | [`software-versioning`](skills/software-versioning/) | Plan version & artifact management across the SDLC — SemVer numbering, dev-vs-release artifacts, artifact≠config, Version-First vs Version-Late, traceable delivery. (Traditional Chinese / 正體中文) |
+| [`iterative-delivery`](skills/iterative-delivery/) | End-to-end product delivery workflow — version-line iterations with gated design docs (Req→URD→SystemDesign→Tasks), branch/tag conventions, "tag as release" + deploy-from-registry, test-gated releases with a regression test per bug, async-write/cached-read API principles, and a hard-won operational-pitfalls checklist. (Traditional Chinese / 正體中文) |
 | _more coming…_ | |
 
 ## Repo layout
@@ -32,12 +33,20 @@ in its own folder under `skills/` and can be installed independently.
     │   ├── SKILL.md                                   # the skill (entry point)
     │   └── references/
     │       └── three-views.md                          # per-view templates + R&R checklist + worked example
-    └── software-versioning/
+    ├── software-versioning/
+    │   ├── SKILL.md                                   # the skill (entry point)
+    │   └── references/
+    │       ├── semver-and-numbering.md                 # X.Y.Z(.Q), build metadata, naming conventions
+    │       ├── artifact-management.md                  # dev vs rel, artifact≠config, deliver-on-day-1
+    │       └── versioning-in-sdlc.md                   # Version-First vs Version-Late, version flow through SDLC
+    └── iterative-delivery/
         ├── SKILL.md                                   # the skill (entry point)
-        └── references/
-            ├── semver-and-numbering.md                 # X.Y.Z(.Q), build metadata, naming conventions
-            ├── artifact-management.md                  # dev vs rel, artifact≠config, deliver-on-day-1
-            └── versioning-in-sdlc.md                   # Version-First vs Version-Late, version flow through SDLC
+        ├── references/
+        │   ├── iteration-workflow.md                   # version-line dirs, gated Req→URD→Design→Tasks, doc layering
+        │   ├── branch-and-release.md                   # branch/tag roles, "tag as release", deploy-from-registry, /readyz, rollback
+        │   ├── async-api-runtime.md                    # async writes (202+event_id+idempotency), cached reads, OpenAPI, logging
+        │   └── operational-pitfalls.md                 # real production incidents: bytes-vs-chars, real-IP, compose orphans, …
+        └── templates/                                  # 00-Req / 01-URD / 02-SystemDesign / 03-Tasks / ReleaseNotes
 ```
 
 Each `SKILL.md` is an entry point. Its YAML frontmatter (`name` + `description`)
