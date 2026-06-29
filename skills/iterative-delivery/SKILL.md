@@ -55,12 +55,13 @@ Req(00) ──► 設計文件(01 URD / 02 SystemDesign / 03 Tasks) ──► re
 - **`references/branch-and-release.md`** — 分支與 tag 角色與命名、「tag as release」的固定步驟、registry 部署、`/readyz` 把關、rollback。
 - **`references/async-api-runtime.md`** — 寫入 async（202 + event_id + optimistic + 冪等）、讀取 cache、OpenAPI、keyset 分頁、錯誤碼慣例、正常路徑也要寫 log。
 - **`references/operational-pitfalls.md`** — 從真實事故累積的硬傷清單（位元組 vs 字元、反向代理後的 real IP、compose project 隔離、nginx upstream 快取、子路徑靜態站、第三方 cookie…）。**動到對應領域前先讀這份。**
-- **`templates/`** — `00-Req.md` / `01-URD.md` / `02-SystemDesign.md` / `03-Tasks.md` / `ReleaseNotes.md` 可直接複製到新版本目錄。
+- **`templates/`** — `Requirement.md`（需求總表，放 `docs/` 根）+ `00-Req.md` / `01-URD.md` / `02-SystemDesign.md` / `03-Tasks.md` / `ReleaseNotes.md`（複製到新版本目錄）。
 
 ## 套用到新產品的最小起手式
 
-1. 建 `docs/` 三層：`00-devguide/`（內部：環境/架構/部署/測試）、`10-iteration/`（每版目錄 + `CurrentStatus.md` + `CHANGELOG.md`）、`20-site/`（對外：功能/條款/API-spec）。
-2. 第一個版本線 `vX.Y.x/` 從 `00-Req.md` 起，照關卡走。
-3. 建一支「一個指令跑完整套測試」的 runner（如 `scripts/test.sh all`），當作 release 的綠燈閘門。
-4. 決定 registry（image repo）與部署腳本；確保 `/readyz` 會吐出 `version`/`commit`/`built_at`，作為部署成功與 rollback 的判斷入口。
-5. 預設語言、commit 風格、「不主動 commit / push / 計費操作」等協作偏好寫進 `CLAUDE.md` / `AGENTS.md`。
+1. 建 `docs/` 三層：`00-devguide/`（內部：環境/架構/部署/測試）、`10-iteration/`（每版目錄 + `CurrentStatus.md` + `CHANGELOG.md` + `Roadmap.md`）、`20-site/`（對外：功能/條款/API-spec）。
+2. 建 `docs/Requirement.md` 需求總表：所有 FR / NFR 配發**唯一序號** `FR#NN` / `NFR#NN`，記狀態（Todo/Doing/Done）與版本，序號串接所有文件與 commit（見 `references/iteration-workflow.md`）。
+3. 第一個版本線 `vX.Y.x/` 從 `00-Req.md` 起，照關卡走。
+4. 建一支「一個指令跑完整套測試」的 runner（如 `scripts/test.sh all`），當作 release 的綠燈閘門。
+5. 決定 registry（image repo）與部署腳本；確保 `/readyz` 會吐出 `version`/`commit`/`built_at`，作為部署成功與 rollback 的判斷入口。
+6. 預設語言、commit 風格、「不主動 commit / push / 計費操作」等協作偏好寫進 `CLAUDE.md` / `AGENTS.md`。

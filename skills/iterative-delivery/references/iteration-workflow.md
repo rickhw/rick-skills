@@ -45,9 +45,34 @@ SystemDesign 只寫該版本 API 摘要；詳細 API 規格放對外的 `API-spe
 - `CHANGELOG.md` 依 git tag 整理（內部，可細碎）；對外 ReleaseNotes 用 **Feature / Advantage / Benefit** 角度寫。
 - **單一來源**：對外法務 / 文件若同時被 app 與官網用，挑一份當 source of truth，build 時再複製 / 生成，避免兩份漂移。
 
+## 需求追蹤：`docs/Requirement.md` 總表與 FR / NFR 唯一序號
+
+全專案的 FR / NFR 有一份**單一索引** `docs/Requirement.md`，是需求的 source of truth：
+
+- **唯一序號**：每筆需求配發 `FR#NN` / `NFR#NN`（兩位數補零），**永久唯一、不重用**——
+  即使該需求被砍或延期，號碼也不回收。新需求取目前最大號 +1。
+- **序號串接所有文件**：`00-Req` / `01-URD` / `02-SystemDesign` / `Arch.md` / `API-spec.md` /
+  `03-Tasks` / commit message 引用需求時一律用 ID（如「實作 FR#03」），讓需求 → 設計 → 任務 →
+  程式碼可雙向追溯。
+- **每筆至少記**：ID、名稱、Persona（FR）、**狀態**（`Todo` / `Doing` / `Done`）、
+  **版本**（決定在哪個版本線開發；未排程標 `Backlog`）、細節位置。
+- **細節落地**：需求完整內容寫在對應版本目錄的 `00-Req.md`（或 `Backlog.md`），總表只放索引列；
+  狀態 / 版本異動時同步更新總表。
+
+> 用範本 `templates/Requirement.md` 起手。總表與 `CurrentStatus.md` 互補：前者是「需求清單」，
+> 後者是「目前在做哪個版本」。
+
+**`Requirement.md` vs `Backlog.md`（兩者分工）**：
+
+- **`Backlog.md`**：記**片段想法**——還沒確認、還不能進 design/dev 的點子。可只有一兩句、可粗略標
+  「大概哪個版本」。**不配發 ID**。
+- **`Requirement.md`**：記**已確認、準備進 design/dev** 的需求，每筆有唯一 `FR#NN` / `NFR#NN`。
+- **升級流程**：Backlog 的想法成熟 → 升級到 `Requirement.md` 配發 ID → 排進版本時把細節寫進該版本
+  `00-Req.md`。降級（暫不做）則把版本標回 `Backlog`，ID 保留不回收。
+
 ## 接手 session 的標準開頭
 
-1. 讀 `CurrentStatus.md` 確認目前開發版本與進度。
+1. 讀 `CurrentStatus.md` 確認目前開發版本與進度；讀 `Requirement.md` 掌握需求全貌與狀態。
 2. 讀對應版本目錄的 `00-Req` / `01-URD` / `02-SystemDesign` / `03-Tasks`。
 3. 跑整套測試確認環境 OK（動程式碼前先跑一次）。
 4. 跟負責人確認要做哪一塊。
