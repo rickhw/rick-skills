@@ -61,7 +61,15 @@
 - 預防：**部署成功後自動 `docker image prune -af`**（清掉被取代的舊 tag）＋ **每週 prune cron** ＋ **磁碟用量告警（>85%）**。
 - 教訓：容器化服務「看似應用層的錯」要先看**磁碟與資源**（`df -h /`、`docker system df`），再看程式碼。
 
-## 11. 每個 bug 都要補回歸測試
+## 11. Poison message → worker 無限 requeue（CPU 長期偏高）
+
+- 症狀：某個 async 消費者持續空轉、CPU 長期偏高、log 被同一則訊息灌爆；`docker stats` 看到 worker + log 收集器（promtail）+ DB 同時燒 CPU。從監控趨勢圖才發現（沒有針對性告警）。
+- 成因：一則**永遠處理不成功**的訊息（例：`comment.create` 指向已被刪的 user → FK violation），worker Nack 後**無限 requeue**。常見 bug：用「x-death / redelivery 計數」判斷重試上限，但**plain `Nack(requeue=true)` 不會累加 `x-death`**（只有經 DLX 死信才寫）→ 計數永遠是 0/1 → 上限判斷永遠成立 → 無限迴圈。
+- 修正：**有界重試 + DLQ**——用 `d.Redelivered` 至多重試一次後 `Nack(requeue=false)` 進 DLQ；並把**永久錯誤**（FK/unique/check violation）分類為 terminal → 直接 Ack 丟棄（重試無意義）。
+- 止血：`purge_queue` 對**處理中（unacked）**的訊息無效——poison 訊息永遠 unacked。要 **stop 消費者（訊息退回 ready）→ purge → start**。
+- 預防：加「DLQ 深度 / 訊息重投率 / 單一 queue processed-per-sec 異常」告警；prod 驗證用的暫存資料當場清乾淨（殘留常是觸發源）。設計面見 `system-design-practices`。
+
+## 12. 每個 bug 都要補回歸測試
 
 - 修 bug 的流程固定是：**找 root cause → 修 → 在回歸測試加這個 case → 全綠 → tag as release → 部署 → 驗證**。
 - 別只修現象；用最能重現 root cause 的輸入（如本清單第 1 條：113 字 CJK / 273 bytes）寫成測試案例。

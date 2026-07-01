@@ -12,6 +12,8 @@ in its own folder under `skills/` and can be installed independently.
 | [`r3-model`](skills/r3-model/) | Describe & design system architecture with the R3 Model — three views (High Level / Logical / Physical) centered on Role & Responsibility. A C4-like, R&R-driven methodology. (Traditional Chinese / 正體中文) |
 | [`software-versioning`](skills/software-versioning/) | Plan version & artifact management across the SDLC — SemVer numbering, dev-vs-release artifacts, artifact≠config, Version-First vs Version-Late, traceable delivery. (Traditional Chinese / 正體中文) |
 | [`iterative-delivery`](skills/iterative-delivery/) | End-to-end product delivery workflow — version-line iterations with gated design docs (Req→URD→SystemDesign→Tasks), branch/tag conventions, "tag as release" + deploy-from-registry, test-gated releases with a regression test per bug, async-write/cached-read API principles, and a hard-won operational-pitfalls checklist. (Traditional Chinese / 正體中文) |
+| [`effective-bug-reporting`](skills/effective-bug-reporting/) | Write, rewrite, and review defect/bug/issue reports so they are clear, reproducible, evidence-backed, and useful for severity/priority decisions and post-fix verification. (Traditional Chinese / 正體中文) |
+| [`system-design-practices`](skills/system-design-practices/) | Design reliable, degradable, resource-bounded services — async/queue consumer reliability (idempotency, bounded retry + DLQ, poison messages), dependency-failure graceful degradation (cache/queue/DB down without cascading), resource safety (no unbounded retries/logs/memory/disk), and observability as a design input. Distilled from real production incidents. (Traditional Chinese / 正體中文) |
 | _more coming…_ | |
 
 ## Repo layout
@@ -39,14 +41,22 @@ in its own folder under `skills/` and can be installed independently.
     │       ├── semver-and-numbering.md                 # X.Y.Z(.Q), build metadata, naming conventions
     │       ├── artifact-management.md                  # dev vs rel, artifact≠config, deliver-on-day-1
     │       └── versioning-in-sdlc.md                   # Version-First vs Version-Late, version flow through SDLC
-    └── iterative-delivery/
+    ├── iterative-delivery/
+    │   ├── SKILL.md                                   # the skill (entry point)
+    │   ├── references/
+    │   │   ├── iteration-workflow.md                   # version-line dirs, gated Req→URD→Design→Tasks, doc layering
+    │   │   ├── branch-and-release.md                   # branch/tag roles, "tag as release", deploy-from-registry, /readyz, rollback
+    │   │   ├── async-api-runtime.md                    # async writes (202+event_id+idempotency), cached reads, OpenAPI, logging
+    │   │   └── operational-pitfalls.md                 # real production incidents: bytes-vs-chars, real-IP, compose orphans, …
+    │   └── templates/                                  # 00-Req / 01-URD / 02-SystemDesign / 03-Tasks / ReleaseNotes
+    ├── effective-bug-reporting/
+    │   └── SKILL.md                                   # the skill (entry point)
+    └── system-design-practices/
         ├── SKILL.md                                   # the skill (entry point)
-        ├── references/
-        │   ├── iteration-workflow.md                   # version-line dirs, gated Req→URD→Design→Tasks, doc layering
-        │   ├── branch-and-release.md                   # branch/tag roles, "tag as release", deploy-from-registry, /readyz, rollback
-        │   ├── async-api-runtime.md                    # async writes (202+event_id+idempotency), cached reads, OpenAPI, logging
-        │   └── operational-pitfalls.md                 # real production incidents: bytes-vs-chars, real-IP, compose orphans, …
-        └── templates/                                  # 00-Req / 01-URD / 02-SystemDesign / 03-Tasks / ReleaseNotes
+        └── references/
+            ├── async-messaging-reliability.md         # at-least-once, idempotency, bounded retry + DLQ, poison messages
+            ├── failure-isolation-degradation.md       # dependency-down degradation, fail-closed vs fail-open, timeouts, blast radius
+            └── resource-safety.md                     # bound retries/logs/memory/disk, data lifecycle, limits, observability
 ```
 
 Each `SKILL.md` is an entry point. Its YAML frontmatter (`name` + `description`)
@@ -225,6 +235,35 @@ Trigger prompts (Chinese or English):
 - "Design an artifact naming and release flow for this service."
 - 「dev build 跟 release build 要怎麼區分？」
 - "How should a version flow through dev/test/staging/prod with traceability?"
+
+---
+
+## Skill: `effective-bug-reporting`
+
+Turns vague symptoms, customer reports, QA notes, or incident observations into
+actionable **Defect/Bug/Issue reports**. Distilled from:
+
+- [如何有效的回報問題 (How to Report Problems Effectively)](https://rickhw.github.io/2018/03/18/SQA/How-To-Report-A-Defect-or-Bug/)
+
+### What it covers
+
+- Clear symptoms/appearance, separated from guesses about root cause.
+- Reliable ordered reproduce steps, including preconditions and occurrence rate.
+- Expected vs actual result, with expected behavior tied to spec/story/product behavior.
+- Valuable debugging context: environment, version/build/commit, logs, screenshots,
+  videos, request IDs, test accounts, data, and timestamps.
+- Issue titles with useful keywords, scope, symptom, and severity signals.
+- Severity vs priority decisions, with explicit reasoning.
+- Review checklists and issue templates for QA, support, product, and engineering teams.
+
+### How to use it
+
+Trigger prompts (Chinese or English):
+
+- 「幫我把這些症狀整理成 bug report。」
+- 「這個 issue 寫得夠清楚嗎？」
+- "Rewrite this customer complaint as a reproducible defect report."
+- 「幫 QA 設計一份 issue template。」
 
 ---
 
