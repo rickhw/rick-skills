@@ -53,7 +53,15 @@
 
 - 新 image role 上 registry 前：repo 要先建、**push 身分**與**pull 身分**（常是不同 IAM user）都要被授權涵蓋新 repo，否則 release 會卡在 AccessDenied。
 
-## 10. 每個 bug 都要補回歸測試
+## 10. 磁碟被 docker 塞爆 → DB crash（看似登入 / 應用層 bug）
+
+- 症狀：登入回 `user_upsert_failed`（或任何 DB 呼叫失敗）；DB 日誌 `No space left on device`；`/readyz` 顯示 `postgres down`；反向代理後的 app 用容器名連 DB 卻「解析不到 / server misbehaving」——因為 DB 容器在 crash 迴圈、根本不在 docker 網路上。cache（Redis）同時 MISCONF（無法把快照寫到磁碟而擋寫）。
+- 成因：**頻繁 release 累積 docker build cache + 未使用的舊 image tag** 把磁碟塞滿（曾把 prod `/` 撐到 100%）。
+- 修正：`docker builder prune -af` + `docker image prune -af`（只清未被任何 running 容器使用的；named volume 不受影響）→ DB 有空間後自動脫離 crash 迴圈；cache 觸發一次成功寫檔（如 `redis-cli BGSAVE`）即清除 MISCONF。
+- 預防：**部署成功後自動 `docker image prune -af`**（清掉被取代的舊 tag）＋ **每週 prune cron** ＋ **磁碟用量告警（>85%）**。
+- 教訓：容器化服務「看似應用層的錯」要先看**磁碟與資源**（`df -h /`、`docker system df`），再看程式碼。
+
+## 11. 每個 bug 都要補回歸測試
 
 - 修 bug 的流程固定是：**找 root cause → 修 → 在回歸測試加這個 case → 全綠 → tag as release → 部署 → 驗證**。
 - 別只修現象；用最能重現 root cause 的輸入（如本清單第 1 條：113 字 CJK / 273 bytes）寫成測試案例。
